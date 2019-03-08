@@ -1,7 +1,7 @@
 #---==IMPORTS==---
 import logging #discord, asyncio,
 from discord.ext import commands
-from modules import test, math, weather, text, random, member
+from modules import test, math, weather, text, random, member, image
 
 #---==CONFIGURATION==---
 #Set up logging
