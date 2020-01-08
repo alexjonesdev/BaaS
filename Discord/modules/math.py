@@ -1,25 +1,25 @@
 from discord.ext import commands
 
-class Math():
+class math(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def add(self, left : float, right : float):
+    async def add(self, ctx, left : float, right : float):
         """Adds two numbers together."""
-        await self.bot.say(left + right)
+        await ctx.send(left + right)
 
     @commands.command()
-    async def sub(self, left : float, right : float):
+    async def sub(self, ctx, left : float, right : float):
         """Subtracts two numbers."""
-        await self.bot.say(left - right)
+        await ctx.send(left - right)
 
     @commands.command()
-    async def mul(self, left : float, right : float):
+    async def mul(self, ctx, left : float, right : float):
         """Multiplies two numbers together."""
-        await self.bot.say(round(left * right), 2)
+        await ctx.send(round(left * right, 2))
 
     @commands.command()
-    async def div(self, left : float, right : float):
+    async def div(self, ctx, left : float, right : float):
         """Divides two numbers."""
-        await self.bot.say(round(left / right), 2)
+        await ctx.send(round(left / right, 2))

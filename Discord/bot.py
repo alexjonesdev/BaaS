@@ -1,7 +1,7 @@
 #---==IMPORTS==---
 import logging, logging.config #discord, asyncio,
 from discord.ext import commands
-from modules import test, math, weather, text, random, member, image
+from modules import test, math, weather, text, rand, member, image
 
 #---==CONFIGURATION==---
 description = '''A bot service made from the discord.py library. Commands:'''
@@ -18,18 +18,18 @@ logger = logging.getLogger(primary_logger)
 bot = commands.Bot(command_prefix=command_prefix, description=description)
 
 #Load modules
-# logger.info('Loading modules...')
-# bot.add_cog(test.Test(bot))
-# logger.info('MODULE LOADED: Test')
-# bot.add_cog(math.Math(bot))
-# logger.info('MODULE LOADED: Math')
-# bot.add_cog(random.Random(bot))
-# logger.info('MODULE LOADED: Random')
-# bot.add_cog(text.Text(bot))
-# logger.info('MODULE LOADED: Text')
-# bot.add_cog(member.Member(bot))
-# logger.info('MODULE LOADED: Member')
-# logger.info('Modules loaded.')
+logger.info('Loading modules...')
+bot.add_cog(test.test(bot))
+logger.info('MODULE LOADED: test')
+bot.add_cog(math.math(bot))
+logger.info('MODULE LOADED: math')
+bot.add_cog(rand.rand(bot))
+logger.info('MODULE LOADED: random')
+bot.add_cog(text.text(bot))
+logger.info('MODULE LOADED: text')
+bot.add_cog(member.member(bot))
+logger.info('MODULE LOADED: Member')
+logger.info('Modules loaded.')
 
 #---==EVENTS==---
 @bot.event
@@ -43,6 +43,7 @@ async def on_ready():
 #---==COMMANDS==---
 @bot.command()
 async def ping(ctx):
+    '''Pings the bot.'''
     logger.info('Received !ping command')
     await ctx.send('pong')
     logger.info('Responded with "pong"')

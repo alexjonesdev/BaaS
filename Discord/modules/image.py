@@ -1,10 +1,10 @@
 from discord.ext import commands
 
-class Image:
+class image(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
-    async def gif(self, gifName):
+    async def gif(self, ctx, gifName):
         """Returns the gif referenced by name."""
-        await self.bot.say('Not implemented yet.')
+        await ctx.send('Not implemented yet.')
