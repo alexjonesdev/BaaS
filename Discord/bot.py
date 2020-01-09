@@ -43,7 +43,7 @@ async def on_ready():
 #---==COMMANDS==---
 @bot.command()
 async def ping(ctx):
-    '''Pings the bot.'''
+    """Pings the bot."""
     logger.info('Received !ping command')
     await ctx.send('pong')
     logger.info('Responded with "pong"')

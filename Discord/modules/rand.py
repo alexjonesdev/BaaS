@@ -7,7 +7,7 @@ class rand(commands.Cog):
 
     @commands.command()
     async def rand(self, ctx, end : int, begin : int = 0, size : int = 1):
-        """Chooses a random number"""
+        """Chooses a random number."""
         await ctx.send(random.randrange(begin, end, size))
 
     @commands.command(description='For when you wanna settle the score some other way')
@@ -16,7 +16,12 @@ class rand(commands.Cog):
         await ctx.send(random.choice(choices))
 
     @commands.command()
-    async def roll(self, ctx, dice : str):
+    async def flip(self, ctx):
+        """Flips a coin."""
+        await ctx.send(random.choice(['Heads','Tails']))
+
+    @commands.command()
+    async def roll(self, ctx, dice : str = '1d100'):
         """Rolls a dice in NdN format."""
         try:
             rolls, limit = map(int, dice.split('d'))

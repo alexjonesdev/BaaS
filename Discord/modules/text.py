@@ -12,5 +12,5 @@ class text(commands.Cog):
 
     @commands.command()
     async def quote(self, ctx, member, searchString):
-        '''Saves or searches for a quote'''
+        """Saves or searches for a quote."""
         await ctx.send('Not implemented yet.')
