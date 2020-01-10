@@ -1,7 +1,7 @@
 #---==IMPORTS==---
-import logging, logging.config #discord, asyncio,
+import logging.config
 from discord.ext import commands
-from modules import test, math, weather, text, rand, member, image
+from modules import test, math, weather, text, rand, member, image, mhw
 
 #---==CONFIGURATION==---
 description = '''A bot service made from the discord.py library. Commands:'''
@@ -19,8 +19,8 @@ bot = commands.Bot(command_prefix=command_prefix, description=description)
 
 #Load modules
 logger.info('Loading modules...')
-bot.add_cog(test.test(bot))
-logger.info('MODULE LOADED: test')
+# bot.add_cog(test.test(bot))
+# logger.info('MODULE LOADED: test')
 bot.add_cog(math.math(bot))
 logger.info('MODULE LOADED: math')
 bot.add_cog(rand.rand(bot))
@@ -28,7 +28,9 @@ logger.info('MODULE LOADED: random')
 bot.add_cog(text.text(bot))
 logger.info('MODULE LOADED: text')
 bot.add_cog(member.member(bot))
-logger.info('MODULE LOADED: Member')
+logger.info('MODULE LOADED: member')
+bot.add_cog(mhw.mhw(bot))
+logger.info('MODULE LOADED: mhw')
 logger.info('Modules loaded.')
 
 #---==EVENTS==---
@@ -47,6 +49,13 @@ async def ping(ctx):
     logger.info('Received !ping command')
     await ctx.send('pong')
     logger.info('Responded with "pong"')
+
+@bot.command()
+async def arg(ctx, *args):
+    """Pings the bot."""
+    logger.info('Received !arg command')
+    await ctx.send(", ".join(args))
+    logger.info('Responded with "args"')
 
 #---==MAIN==---
 #Load the token from a file and log the bot in

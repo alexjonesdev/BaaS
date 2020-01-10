@@ -1,6 +1,7 @@
-# import discord
+#---==IMPORTS==---
 from discord.ext import commands
 
+#---==COMMANDS==---
 class member(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

@@ -1,5 +1,7 @@
+#---==IMPORTS==---
 from discord.ext import commands
 
+#---==COMMANDS==---
 class image(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

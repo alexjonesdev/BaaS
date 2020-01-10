@@ -1,6 +1,8 @@
+#---==IMPORTS==---
 import random
 from discord.ext import commands
 
+#---==COMMANDS==---
 class rand(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
