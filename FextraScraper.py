@@ -23,6 +23,13 @@ insect_glaive_url = 'https://monsterhunterworld.wiki.fextralife.com/Insect+Glaiv
 bow_url = 'https://monsterhunterworld.wiki.fextralife.com/Bow'
 light_bowgun_url = 'https://monsterhunterworld.wiki.fextralife.com/Light+Bowgun'
 heavy_bowgun_url = 'https://monsterhunterworld.wiki.fextralife.com/Heavy+Bowgun'
+head_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Head+Armor'
+chest_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Chest+Armor'
+arm_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Arms+Armor'
+waist_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Waist+Armor'
+leg_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Leg+Armor'
+charm_url = 'https://monsterhunterworld.wiki.fextralife.com/Charms'
+decoration_url = 'https://monsterhunterworld.wiki.fextralife.com/Decorations'
 
 #---==INITIALIZATION==---
 Session = sessionmaker(bind=engine)
@@ -47,6 +54,25 @@ class Weapon(base):
     def __repr__(self):
         return "<Weapon(name='%s', category='%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0, self.augmentation or 0)
 
+class Armor(base):
+    __tablename__ = 'mhw_armor'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    category = Column(String)
+    rarity = Column(Integer)
+    defense = Column(Integer)
+    fire = Column(Integer)
+    water = Column(Integer)
+    thunder = Column(Integer)
+    ice = Column(Integer)
+    dragon = Column(Integer)
+    slot1 = Column(Integer)
+    slot2 = Column(Integer)
+    slot3 = Column(Integer)
+    slot4 = Column(Integer)
+
+    def __repr__(self):
+        return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
 
 #---==FUNCTIONS==---
 def get_gems(cell):
@@ -54,7 +80,25 @@ def get_gems(cell):
     imgs = cell.find_all('img')
 
     for img in imgs:
-        if img.has_attr('alt'):
+        if img.has_attr('src'):
+            if img['src'] == '/file/Monster-Hunter-World/gem_level_1.png':
+                gem1 += 1
+            elif img['src'] == '/file/Monster-Hunter-World/gem_level_2.png':
+                gem2 += 1
+            elif img['src'] == '/file/Monster-Hunter-World/gem_level_3.png':
+                gem3 += 1
+            elif img['src'] == '/file/Monster-Hunter-World/decoration_level_4_mhw_wiki.png':
+                gem4 += 1
+        elif img.has_attr('title'):
+            if img['title'] == 'gem_level_1':
+                gem1 += 1
+            elif img['title'] == 'gem_level_2':
+                gem2 += 1
+            elif img['title'] == 'gem_level_3':
+                gem3 += 1
+            elif img['title'] == 'decoration_level_4_mhw_wiki':
+                gem4 += 1
+        elif img.has_attr('alt'):
             if img['alt'] == 'gem_level_1':
                 gem1 += 1
             elif img['alt'] == 'gem_level_2':
@@ -78,11 +122,30 @@ def get_weapons(url, cat):
         weapons.append(Weapon(category=cat, name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
 
     if cat == 'Hammer': #There's a duplicate entry in the hammer table that breaks the insert
-        weps = set([i if 'Magda Floga Reforged' == x.name else -1 for i,x in enumerate(weapons)])
-        if len(weps) > 2:
-            weapons.pop(sorted(weps)[-1])
+        dup = set([i if 'Magda Floga Reforged' == x.name else -1 for i,x in enumerate(weapons)])
+        if len(dup) > 2:
+            weapons.pop(sorted(dup)[-1])
 
     return weapons
+
+def get_armor(url, cat):
+    armor = []
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    table = soup.find("table","wiki_table sortable")
+    rows = table.tbody.find_all('tr', recursive=False)
+
+    for row in rows:
+        cells = row.find_all('td', recursive=False)
+        gem1, gem2, gem3, gem4 = get_gems(cells[4])
+        armor.append(Armor(category=cat, name=cells[0].get_text().strip(), rarity=int(cells[1].string), defense=int(cells[3].string), fire=int(cells[5].string.replace(" ", "")), water=int(cells[6].string.replace(" ", "")), thunder=int(cells[7].string.replace(" ", "")), ice=int(cells[8].string.replace(" ", "")), dragon=int(cells[9].string.replace(" ", "")), slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
+
+    if cat == 'Head': #There's a duplicate entry in the hammer table that breaks the insert
+        dup = set([i if 'Diablos Nero Helm Alpha +' == x.name else -1 for i,x in enumerate(armor)])
+        if len(dup) > 2:
+            armor.pop(sorted(dup)[-1])
+
+    return armor
 
 #---==MAIN==---
 session = Session()
@@ -115,6 +178,23 @@ print('Adding light bowgun...')
 session.add_all(get_weapons(light_bowgun_url, 'Heavy Bowgun'))
 print('Adding heavy bowgun...')
 session.add_all(get_weapons(heavy_bowgun_url, 'Light Bowgun'))
+print('Committing...')
+print('Done.')
+session.commit()
+session.close()
+
+session = Session()
+print('Adding armor to database...')
+print('Adding head armor...')
+session.add_all(get_armor(head_armor_url, 'Head'))
+print('Adding chest armor...')
+session.add_all(get_armor(chest_armor_url, 'Chest'))
+print('Adding arm armor...')
+session.add_all(get_armor(arm_armor_url, 'Arm'))
+print('Adding waist armor...')
+session.add_all(get_armor(waist_armor_url, 'Waist'))
+print('Adding leg armor...')
+session.add_all(get_armor(leg_armor_url, 'Leg'))
 print('Committing...')
 print('Done.')
 session.commit()
