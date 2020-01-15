@@ -40,16 +40,17 @@ class Weapon(base):
     slot1 = Column(Integer)
     slot2 = Column(Integer)
     slot3 = Column(Integer)
+    slot4 = Column(Integer)
     augmentation = Column(Integer)
     rarity = Column(Integer)
 
     def __repr__(self):
-        return "<Weapon(name='%s', category='%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.augmentation or 0)
+        return "<Weapon(name='%s', category='%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0, self.augmentation or 0)
 
 
 #---==FUNCTIONS==---
 def get_gems(cell):
-    gem1, gem2, gem3 = 0, 0, 0
+    gem1, gem2, gem3, gem4 = 0, 0, 0, 0
     imgs = cell.find_all('img')
 
     for img in imgs:
@@ -60,7 +61,9 @@ def get_gems(cell):
                 gem2 += 1
             elif img['alt'] == 'gem_level_3':
                 gem3 += 1
-    return gem1, gem2, gem3
+            elif img['alt'] == 'decoration_level_4_mhw_wiki':
+                gem4 += 1
+    return gem1, gem2, gem3, gem4
 
 def get_weapons(url, cat):
     weapons = []
@@ -71,8 +74,8 @@ def get_weapons(url, cat):
 
     for row in rows:
         cells = row.find_all('td', recursive=False)
-        gem1, gem2, gem3 = get_gems(cells[0])
-        weapons.append(Weapon(category=cat, name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3))
+        gem1, gem2, gem3, gem4 = get_gems(cells[0])
+        weapons.append(Weapon(category=cat, name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
 
     if cat == 'Hammer': #There's a duplicate entry in the hammer table that breaks the insert
         weps = set([i if 'Magda Floga Reforged' == x.name else -1 for i,x in enumerate(weapons)])
