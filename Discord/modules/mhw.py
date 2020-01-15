@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 #---==CONFIGURATION==---
-engine = create_engine("mysql://user:password@localhost/discord?charset=utf8") #Make a database engine using whatever you want
+engine = create_engine("mysql://discord:AStrongMySQLPassword1!@localhost/discord?charset=utf8mb4") #Make a database engine using whatever you want
 
 #---==INITIALIZATION==---
 Session = sessionmaker(bind=engine)
@@ -27,13 +27,34 @@ class Weapon(base):
     category = Column(String)
     attack = Column(Integer)
     element = Column(String)
+    affinity = Column(Integer)
     slot1 = Column(Integer)
     slot2 = Column(Integer)
     slot3 = Column(Integer)
     augmentation = Column(Integer)
     
     def __repr__(self):
-        return "<Weapon(name='%s', category'%s', attack='%d', element='%s', gem lvl1 slots='%d', gem lvl2 slots='%d', gem lvl3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack, self.element, self.slot1, self.slot2, self.slot3, self.augmentation)
+        return "<Weapon(name='%s', category'%s', attack='%d', element='%s', affinity='%d', gem lvl1 slots='%d', gem lvl2 slots='%d', gem lvl3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack, self.element, self.affinity, self.slot1, self.slot2, self.slot3, self.augmentation)
+
+class Armor(base):
+    __tablename__ = 'mhw_armor'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    category = Column(String)
+    rarity = Column(Integer)
+    defense = Column(Integer)
+    fire = Column(Integer)
+    water = Column(Integer)
+    thunder = Column(Integer)
+    ice = Column(Integer)
+    dragon = Column(Integer)
+    slot1 = Column(Integer)
+    slot2 = Column(Integer)
+    slot3 = Column(Integer)
+    slot4 = Column(Integer)
+
+    def __repr__(self):
+        return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
 
 #---==COMMANDS==---
 class mhw(commands.Cog):
@@ -42,22 +63,33 @@ class mhw(commands.Cog):
 
     @commands.group()
     async def mhw(self, ctx):
-        """Executes various MHW related commands"""
+        """Executes various MHW related commands (i.e., !mhw <command> <search phrase>)"""
         if ctx.invoked_subcommand is None:
-            await ctx.send('Invalid mhw command passed...')
+            await ctx.send('Must include a subcommand such as "!mhw weapon"')
 
     @mhw.command()
     async def weapon(self, ctx, *, name):
-        """Returns the stats of a weapon"""
+        """Returns the stats of a weapon (e.g., !mhw weapon Iron Bow I) """
         sess = Session()
-        mytest = sess.query(Weapon).filter(Weapon.name == name).first()
+        wep = sess.query(Weapon).filter(Weapon.name.like('%'+ name + '%')).first()
         sess.close()
-        await ctx.send(mytest)
+        if wep == None:
+            await ctx.send('Weapon not found.')
+        else:
+            await ctx.send(wep)
 
-    @commands.command()
-    async def mhwdb(self, ctx, id=1):
-        """Test DB function"""
+    @mhw.command()
+    async def armor(self, ctx, *, name):
+        """Returns the stats of an armor set (e.g. !mhw armor Odogaron)"""
         sess = Session()
-        mytest = sess.query(Test).get(id)
+        ar = sess.query(Armor).filter(Armor.name.like('%'+ name + '%')).first()
         sess.close()
-        await ctx.send(mytest)
+        if ar == None:
+            await ctx.send('Armor not found.')
+        else:
+            await ctx.send(ar)
+
+    @mhw.command()
+    async def monster(self, ctx, *, name):
+        """Returns the stats of a monster (e.g., !mhw monster Great Jagras)"""
+        await ctx.send('Not implemented yet.')
