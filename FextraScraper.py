@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 #---==CONFIGURATION==---
-engine = create_engine("mysql://user:password@localhost/discord?charset=utf8mb4") #Make a database engine using whatever you want
+engine = create_engine("mysql://discord:AStrongMySQLPassword1!@localhost/discord?charset=utf8mb4") #Make a database engine using whatever you want
 great_sword_url = 'https://monsterhunterworld.wiki.fextralife.com/Great+Sword'
 
 #---==INITIALIZATION==---
@@ -31,7 +31,7 @@ class Weapon(base):
     rarity = Column(Integer)
 
     def __repr__(self):
-        return "<Weapon(name='%s', category'%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack, self.element, self.affinity, self.rarity, self.slot1, self.slot2, self.slot3, self.augmentation)
+        return "<Weapon(name='%s', category'%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.augmentation or 0)
 
 
 #---==MAIN==---
@@ -44,4 +44,4 @@ def get_weapons():
 
     for row in rows:
         cells = row.find_all('td', recursive=False)
-        weapons.append(Weapon(category='Greatsword', name=cells[0].a.string, attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=0, slot2=0, slot3=0))
+        weapons.append(Weapon(category='Greatsword', name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=0, slot2=0, slot3=0))
