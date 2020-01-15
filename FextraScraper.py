@@ -34,7 +34,20 @@ class Weapon(base):
         return "<Weapon(name='%s', category'%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.augmentation or 0)
 
 
-#---==MAIN==---
+#---==FUNCTIONS==---
+def get_gems(cell):
+    gem1, gem2, gem3 = 0, 0, 0
+    imgs = cell.find_all('img')
+
+    for img in imgs:
+        if img['alt'] == 'gem_level_1':
+            gem1 += 1
+        elif img['alt'] == 'gem_level_2':
+            gem2 += 1
+        elif img['alt'] == 'gem_level_3':
+            gem3 += 1
+    return gem1, gem2, gem3
+
 def get_weapons():
     weapons = []
     response = requests.get(great_sword_url)
@@ -44,4 +57,8 @@ def get_weapons():
 
     for row in rows:
         cells = row.find_all('td', recursive=False)
-        weapons.append(Weapon(category='Greatsword', name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=0, slot2=0, slot3=0))
+        gem1, gem2, gem3 = get_gems(cells[0])
+        weapons.append(Weapon(category='Greatsword', name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3))
+
+    return weapons
+#---==MAIN==---
