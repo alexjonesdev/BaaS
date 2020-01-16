@@ -16,3 +16,24 @@ class text(commands.Cog):
     async def quote(self, ctx, member, searchString):
         """Saves or searches for a quote."""
         await ctx.send('Not implemented yet.')
+
+    @commands.command()
+    async def respect(self, ctx):
+        """Pays respects."""
+        await ctx.send('''FFFFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFF
+FFFFFF''')
