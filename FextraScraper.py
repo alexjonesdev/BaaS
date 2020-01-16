@@ -1,7 +1,7 @@
 #Scrapes item information from fextralife and imports/updates database entries
 
 #---==IMPORTS==---
-import requests
+import requests, unicodedata
 from bs4 import BeautifulSoup
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -30,6 +30,7 @@ waist_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Wa
 leg_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Leg+Armor'
 charm_url = 'https://monsterhunterworld.wiki.fextralife.com/Charms'
 decoration_url = 'https://monsterhunterworld.wiki.fextralife.com/Decorations'
+skill_url = 'https://monsterhunterworld.wiki.fextralife.com/Skills'
 
 #---==INITIALIZATION==---
 Session = sessionmaker(bind=engine)
@@ -73,6 +74,16 @@ class Armor(base):
 
     def __repr__(self):
         return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
+
+class Skill(base):
+    __tablename__ = 'mhw_skill'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    levels = Column(Integer)
+
+    def __repr__(self):
+        return "<Skill(name='%s', description='%s', levels='%d')>" % (self.name, self.description, self.levels or 0)
 
 #---==FUNCTIONS==---
 def get_gems(cell):
@@ -147,6 +158,21 @@ def get_armor(url, cat):
 
     return armor
 
+def get_skills():
+    skills = []
+    response = requests.get(skill_url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    headers = soup.find_all('h3', 'titlearea')
+    rows = headers[1].find_next_siblings('div', 'row')
+
+    for row in rows:
+        cols = row.find_all('div', 'col-sm-3')
+        for col in cols:
+            cells = col.find_all('p')
+            skills.append(Skill(name=unicodedata.normalize('NFKD',cells[0].get_text()), description=unicodedata.normalize('NFKD',cells[1].get_text()), levels=int(unicodedata.normalize('NFKD',cells[2].get_text()).strip().split(' ')[-1].split(':')[-1])))
+
+    return skills
+
 #---==MAIN==---
 session = Session()
 print('Adding weapons to database...')
@@ -195,6 +221,14 @@ print('Adding waist armor...')
 session.add_all(get_armor(waist_armor_url, 'Waist'))
 print('Adding leg armor...')
 session.add_all(get_armor(leg_armor_url, 'Leg'))
+print('Committing...')
+print('Done.')
+session.commit()
+session.close()
+
+session = Session()
+print('Adding skills to database...')
+session.add_all(get_skills())
 print('Committing...')
 print('Done.')
 session.commit()

@@ -56,6 +56,16 @@ class Armor(base):
     def __repr__(self):
         return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
 
+class Skill(base):
+    __tablename__ = 'mhw_skill'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    levels = Column(Integer)
+
+    def __repr__(self):
+        return "<Skill(name='%s', description='%s', levels='%d')>" % (self.name, self.description, self.levels or 0)
+
 #---==COMMANDS==---
 class mhw(commands.Cog):
     def __init__(self, bot):
@@ -80,12 +90,23 @@ class mhw(commands.Cog):
 
     @mhw.command()
     async def armor(self, ctx, *, name):
-        """Returns the stats of an armor set (e.g. !mhw armor Odogaron)"""
+        """Returns the stats of an armor piece (e.g. !mhw armor Odogaron)"""
         sess = Session()
         ar = sess.query(Armor).filter(Armor.name.like('%'+ name + '%')).first()
         sess.close()
         if ar == None:
             await ctx.send('Armor not found.')
+        else:
+            await ctx.send(ar)
+
+    @mhw.command()
+    async def skill(self, ctx, *, name):
+        """Returns the description & max level of a skill (e.g. !mhw skill attack)"""
+        sess = Session()
+        ar = sess.query(Skill).filter(Skill.name.like('%'+ name + '%')).first()
+        sess.close()
+        if ar == None:
+            await ctx.send('Skill not found.')
         else:
             await ctx.send(ar)
 
