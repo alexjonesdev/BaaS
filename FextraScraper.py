@@ -28,6 +28,7 @@ chest_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Ch
 arm_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Arms+Armor'
 waist_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Waist+Armor'
 leg_armor_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Leg+Armor'
+armor_set_url = 'https://monsterhunterworld.wiki.fextralife.com/Master+Rank+Armor'
 charm_url = 'https://monsterhunterworld.wiki.fextralife.com/Charms'
 decoration_url = 'https://monsterhunterworld.wiki.fextralife.com/Decorations'
 skill_url = 'https://monsterhunterworld.wiki.fextralife.com/Skills'
@@ -74,6 +75,17 @@ class Armor(base):
 
     def __repr__(self):
         return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
+
+class Armor_Set(base):
+    __tablename__ = 'mhw_armor_set'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    rarity = Column(Integer)
+    bonus = Column(String)
+    bonus_description = Column(String)
+
+    def __repr__(self):
+        return "<Armor_Set(name='%s', rarity='%d', bonus='%s', bonus_description='%s')>" % (self.name, self.rarity or 0, self.bonus, self.bonus_description)
 
 class Skill(base):
     __tablename__ = 'mhw_skill'
@@ -158,6 +170,22 @@ def get_armor(url, cat):
 
     return armor
 
+def get_armor_sets():
+    armor = []
+    response = requests.get(armor_set_url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    table = soup.find("table","wiki_table sortable")
+    rows = table.tbody.find_all('tr', recursive=False)
+
+    for row in rows:
+        cells = row.find_all('td', recursive=False)
+        bon = cells[9].get_text().strip()
+        if bon == 'no bonus' or bon =='--':
+            bon = None
+        armor.append(Armor_Set(name=cells[1].get_text().replace('Armor Set', '').strip(), rarity=int(cells[0].string), bonus=bon))
+
+    return armor
+
 def get_skills():
     skills = []
     response = requests.get(skill_url)
@@ -221,6 +249,14 @@ print('Adding waist armor...')
 session.add_all(get_armor(waist_armor_url, 'Waist'))
 print('Adding leg armor...')
 session.add_all(get_armor(leg_armor_url, 'Leg'))
+print('Committing...')
+print('Done.')
+session.commit()
+session.close()
+
+session = Session()
+print('Adding armor sets to database...')
+session.add_all(get_armor_sets())
 print('Committing...')
 print('Done.')
 session.commit()

@@ -1,8 +1,8 @@
 #---==IMPORTS==---
 from discord.ext import commands
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 
 #---==CONFIGURATION==---
 engine = create_engine("mysql://discord:AStrongMySQLPassword1!@localhost/discord?charset=utf8mb4") #Make a database engine using whatever you want
@@ -10,6 +10,10 @@ engine = create_engine("mysql://discord:AStrongMySQLPassword1!@localhost/discord
 #---==INITIALIZATION==---
 Session = sessionmaker(bind=engine)
 base = declarative_base()
+emojis = {  "defense":"<:defense:667736167705346048>", "fire":"<:fire:667736167642300426>", "water":"<:water:667736167336116226>",
+            "thunder":"<:thunder:667736167709540392>", "ice":"<:ice:667736167600619532>", "dragon":"<:dragon:667736167671791626>",
+            "gem1":"<:gem1:667736167520927744>", "gem2":"<:gem2:667736167671922688>", "gem3":"<:gem3:667736167739031582>",
+            "gem4":"<:gem4:667736167436910632>"}
 
 #---==DATABASE==---
 class Test(base):
@@ -56,6 +60,28 @@ class Armor(base):
     def __repr__(self):
         return "<Armor(name='%s', category='%s', rarity='%d', defense='%d', fire='%d', water='%d', thunder='%d', ice='%d', dragon='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d')>" % (self.name, self.category, self.rarity or 0, self.defense or 0, self.fire or 0, self.water or 0, self.thunder or 0, self.ice or 0, self.dragon or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0)
 
+class Armor_Set(base):
+    __tablename__ = 'mhw_armor_set'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    rarity = Column(Integer)
+    bonus = Column(String)
+    bonus_description = Column(String)
+    pieces = relationship("Armor_Set_Piece")
+
+    def __repr__(self):
+        return "<Armor_Set(name='%s', rarity='%d', bonus='%s', bonus_description='%s')>" % (self.name, self.rarity or 0, self.bonus, self.bonus_description)
+
+class Armor_Set_Piece(base):
+    __tablename__ = 'mhw_armor_set_piece'
+    id = Column(Integer, primary_key=True)
+    armor_set_id = Column(Integer, ForeignKey('mhw_armor_set.id'))
+    armor_id = Column(Integer, ForeignKey('mhw_armor.id'))
+    armor = relationship("Armor")
+
+    def __repr__(self):
+        return "<Armor_Set_Piece(id='%d', set_id='%d', armor_id='%d')>" % (self.id or -1, self.armor_set_id or -1, self.armor_id or -1)
+
 class Skill(base):
     __tablename__ = 'mhw_skill'
     id = Column(Integer, primary_key=True)
@@ -96,6 +122,21 @@ class mhw(commands.Cog):
         sess.close()
         if ar == None:
             await ctx.send('Armor not found.')
+        else:
+            await ctx.send('''**{0}**:  R{1}
+{2}{3},   {4}{5},   {6}{7},   {8}{9},   {10}{11},   {12}{13}
+{14}{15},   {16}{17},   {18}{19},   {20}{21}'''.format(ar.name, ar.rarity,
+emojis['defense'], ar.defense, emojis['fire'], ar.fire, emojis['water'], ar.water, emojis['thunder'], ar.thunder, emojis['ice'], ar.ice, emojis['dragon'], ar.dragon,
+emojis['gem1'], ar.slot1, emojis['gem2'], ar.slot2, emojis['gem3'], ar.slot3, emojis['gem4'], ar.slot4))
+
+    @mhw.command()
+    async def set(self, ctx, *, name):
+        """Returns the stats of a weapon (e.g., !mhw weapon Iron Bow I) """
+        sess = Session()
+        ar = sess.query(Armor_Set).filter(Armor_Set.name.like('%'+ name + '%')).first()
+        sess.close()
+        if ar == None:
+            await ctx.send('Armor set not found.')
         else:
             await ctx.send(ar)
 
