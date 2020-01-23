@@ -3,7 +3,7 @@
 #---==IMPORTS==---
 import requests, unicodedata
 from bs4 import BeautifulSoup
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -45,6 +45,8 @@ class Weapon(base):
     category = Column(String)
     attack = Column(Integer)
     element = Column(String)
+    element_amount = Column(Integer)
+    element_locked = Column(Boolean)
     affinity = Column(Integer)
     slot1 = Column(Integer)
     slot2 = Column(Integer)
@@ -54,7 +56,7 @@ class Weapon(base):
     rarity = Column(Integer)
 
     def __repr__(self):
-        return "<Weapon(name='%s', category='%s', attack='%d', element='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0, self.augmentation or 0)
+        return "<Weapon(name='%s', category='%s', attack='%d', element='%s', amount='%d', locked='%s', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element, self.element_amount or 0, str(self.element_locked), self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0, self.augmentation or 0)
 
 class Armor(base):
     __tablename__ = 'mhw_armor'
@@ -142,7 +144,13 @@ def get_weapons(url, cat):
     for row in rows:
         cells = row.find_all('td', recursive=False)
         gem1, gem2, gem3, gem4 = get_gems(cells[0])
-        weapons.append(Weapon(category=cat, name=cells[0].a.get_text().strip(), attack=int(cells[1].string), affinity=int(cells[2].string.split('%')[0]), element=cells[3].get_text(), rarity=int(cells[4].string), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
+        elem_lock = False
+
+        if '(' in cells[3].get_text() or ')' in cells[3].get_text():
+            elem_lock = True
+
+        elem = cells[3].get_text().strip().replace('(', '').replace(')', '').replace(u'\xa0', ' ').replace('  ', ' ').strip().split(' ')
+        weapons.append(Weapon(category=cat, name=cells[0].a.get_text().strip(), attack=int(cells[1].get_text().strip()), affinity=int(cells[2].get_text().strip().split('%')[0]), element=elem[0], element_amount=int(elem[1]), element_locked = elem_lock, rarity=int(cells[4].get_text().strip()), augmentation=0, slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
 
     if cat == 'Hammer': #There's a duplicate entry in the hammer table that breaks the insert
         dup = set([i if 'Magda Floga Reforged' == x.name else -1 for i,x in enumerate(weapons)])
@@ -161,7 +169,7 @@ def get_armor(url, cat):
     for row in rows:
         cells = row.find_all('td', recursive=False)
         gem1, gem2, gem3, gem4 = get_gems(cells[4])
-        armor.append(Armor(category=cat, name=cells[0].get_text().strip(), rarity=int(cells[1].string), defense=int(cells[3].string), fire=int(cells[5].string.replace(" ", "")), water=int(cells[6].string.replace(" ", "")), thunder=int(cells[7].string.replace(" ", "")), ice=int(cells[8].string.replace(" ", "")), dragon=int(cells[9].string.replace(" ", "")), slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
+        armor.append(Armor(category=cat, name=cells[0].get_text().strip(), rarity=int(cells[1].get_text().strip()), defense=int(cells[3].get_text().strip()), fire=int(cells[5].get_text().strip().replace(" ", "")), water=int(cells[6].get_text().strip().replace(" ", "")), thunder=int(cells[7].get_text().strip().replace(" ", "")), ice=int(cells[8].get_text().strip().replace(" ", "")), dragon=int(cells[9].get_text().strip().replace(" ", "")), slot1=gem1, slot2=gem2, slot3=gem3, slot4=gem4))
 
     if cat == 'Head': #There's a duplicate entry in the hammer table that breaks the insert
         dup = set([i if 'Diablos Nero Helm Alpha +' == x.name else -1 for i,x in enumerate(armor)])
@@ -182,7 +190,7 @@ def get_armor_sets():
         bon = cells[9].get_text().strip()
         if bon == 'no bonus' or bon =='--':
             bon = None
-        armor.append(Armor_Set(name=cells[1].get_text().replace('Armor Set', '').strip(), rarity=int(cells[0].string), bonus=bon))
+        armor.append(Armor_Set(name=cells[1].get_text().replace('Armor Set', '').strip(), rarity=int(cells[0].get_text().strip()), bonus=bon))
 
     return armor
 
@@ -197,7 +205,7 @@ def get_skills():
         cols = row.find_all('div', 'col-sm-3')
         for col in cols:
             cells = col.find_all('p')
-            skills.append(Skill(name=unicodedata.normalize('NFKD',cells[0].get_text()), description=unicodedata.normalize('NFKD',cells[1].get_text()), levels=int(unicodedata.normalize('NFKD',cells[2].get_text()).strip().split(' ')[-1].split(':')[-1])))
+            skills.append(Skill(name=unicodedata.normalize('NFKD',cells[0].get_text().strip()), description=unicodedata.normalize('NFKD',cells[1].get_text().strip()), levels=int(unicodedata.normalize('NFKD',cells[2].get_text()).strip().split(' ')[-1].split(':')[-1])))
 
     return skills
 
