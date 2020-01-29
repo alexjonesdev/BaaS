@@ -250,6 +250,7 @@ def get_weapons(url, cat):
                     elem_lock = None
                 elif len(elem) > 3:
                     element = elem[0] + '/' + elem[2]
+                    element_amount = elem[1]
                 else:
                     element_amount = elem[1]
 

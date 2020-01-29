@@ -1,6 +1,6 @@
 #---==IMPORTS==---
 from discord.ext import commands
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -14,7 +14,8 @@ emojis = {  "defense":"<:defense:667736167705346048>", "fire":"<:fire:6677361676
             "thunder":"<:thunder:667736167709540392>", "ice":"<:ice:667736167600619532>", "dragon":"<:dragon:667736167671791626>",
             "gem1":"<:gem1:667736167520927744>", "gem2":"<:gem2:667736167671922688>", "gem3":"<:gem3:667736167739031582>",
             "gem4":"<:gem4:667736167436910632>", "ammo":"<:ammo:669574033829920768>", "greatsword":"<:greatsword:669573349327765542>",
-            "hammer":"<:hammer:669574016163381258>"}
+            "hammer":"<:hammer:669574016163381258>", "affinity":"<:affinity:672171533845921792>", "blast":"<:blast:672181061869895686>",
+            "sleep":"<:sleep:672181062226542593>", "poison":"<:poison:672181062201507851>", "paralysis":"<:paralysis:672181062247645194>"}
 
 #---==DATABASE==---
 class Test(base):
@@ -26,20 +27,26 @@ class Test(base):
         return "<Test(id='%d', value='%s')>" % (self.id, self.value)
 
 class Weapon(base):
+    """Object mapping for mhw_weapon table in the database"""
     __tablename__ = 'mhw_weapon'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     category = Column(String)
     attack = Column(Integer)
     element = Column(String)
+    element_amount = Column(Integer)
+    element_locked = Column(Boolean)
+    mod = Column(Integer)
     affinity = Column(Integer)
     slot1 = Column(Integer)
     slot2 = Column(Integer)
     slot3 = Column(Integer)
+    slot4 = Column(Integer)
     augmentation = Column(Integer)
-    
+    rarity = Column(Integer)
+
     def __repr__(self):
-        return "<Weapon(name='%s', category'%s', attack='%d', element='%s', affinity='%d', gem lvl1 slots='%d', gem lvl2 slots='%d', gem lvl3 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack, self.element, self.affinity, self.slot1, self.slot2, self.slot3, self.augmentation)
+        return "<Weapon(name='%s', category='%s', attack='%d', element='%s', amount='%d', locked='%s', mods='%d', affinity='%d'%%, rarity='%d', gem1 slots='%d', gem2 slots='%d', gem3 slots='%d', gem4 slots='%d', augmentations='%d')>" % (self.name, self.category, self.attack or 0, self.element, self.element_amount or 0, str(self.element_locked), self.mod or 0, self.affinity or 0, self.rarity or 0, self.slot1 or 0, self.slot2 or 0, self.slot3 or 0, self.slot4 or 0, self.augmentation or 0)
 
 class Armor(base):
     __tablename__ = 'mhw_armor'
@@ -93,6 +100,44 @@ class Skill(base):
     def __repr__(self):
         return "<Skill(name='%s', description='%s', levels='%d')>" % (self.name, self.description, self.levels or 0)
 
+#---==FUNCTIONS==---
+def get_attack_emote(category):
+    """Returns the emote for a given weapon category."""
+    if category in ['Bow', 'Heavy Bowgun', 'Light Bowgun']:
+        return emojis['ammo']
+    elif category in ['Hammer', 'Hunting Horn']:
+        return emojis['hammer']
+    elif category in ['Charge Blade', 'Dual Blade', 'Great Sword', 'Gunlance', 'Insect Glaive', 'Lance', 'Long Sword', 'Switch Axe', 'Sword & Shield']:
+        return emojis['greatsword']
+    else:
+        return 'Attack:'
+
+def get_element_emote(element):
+    """Returns the emote for a given element"""
+    if '/' in element:
+        element_pieces = element.split('/')
+        return get_element_emote(element_pieces[0]) + '/' + get_element_emote(element_pieces[1])
+    elif element == 'Fire':
+        return emojis['fire']
+    elif element == 'Water':
+        return emojis['water']
+    elif element == 'Ice':
+        return emojis['ice']
+    elif element == 'Thunder':
+        return emojis['thunder']
+    elif element == 'Dragon':
+        return emojis['dragon']
+    elif element == 'Blast':
+        return emojis['blast']
+    elif element == 'Paralysis':
+        return emojis['paralysis']
+    elif element == 'Sleep':
+        return emojis['sleep']
+    elif element == 'Poison':
+        return emojis['poison']
+    else:
+        return ''
+
 #---==COMMANDS==---
 class mhw(commands.Cog):
     def __init__(self, bot):
@@ -113,7 +158,12 @@ class mhw(commands.Cog):
         if wep == None:
             await ctx.send('Weapon not found.')
         else:
-            await ctx.send(wep)
+            response = '''**{0}**:  R{1}
+{2}{3},   ({4}{5}),   {6}{7},
+{8}{9},   {10}{11},   {12}{13}   {14}{15}'''.format(wep.name, wep.rarity,
+get_attack_emote(wep.category), wep.attack, get_element_emote(wep.element), wep.element_amount, emojis['affinity'], wep.affinity,
+emojis['gem1'], wep.slot1, emojis['gem2'], wep.slot2, emojis['gem3'], wep.slot3, emojis['gem4'], wep.slot4)
+            await ctx.send(response if wep.element_locked == True else response.replace('(', '').replace(')', ''))
 
     @mhw.command()
     async def armor(self, ctx, *, name):
