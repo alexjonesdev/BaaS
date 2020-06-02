@@ -1,7 +1,7 @@
 #---==IMPORTS==---
 import logging.config
 from discord.ext import commands
-from modules import test, math, weather, text, rand, member, image, mhw
+from modules import test, math, weather, text, rand, member, image, experimental#, mhw
 
 #---==CONFIGURATION==---
 description = '''A bot service made from the discord.py library. Commands:'''
@@ -29,8 +29,10 @@ bot.add_cog(text.text(bot))
 logger.info('MODULE LOADED: text')
 bot.add_cog(member.member(bot))
 logger.info('MODULE LOADED: member')
-bot.add_cog(mhw.mhw(bot))
-logger.info('MODULE LOADED: mhw')
+# bot.add_cog(mhw.mhw(bot))
+# logger.info('MODULE LOADED: mhw')
+bot.add_cog(experimental.experimental(bot))
+logger.info('MODULE LOADED: experimental')
 logger.info('Modules loaded.')
 
 #---==EVENTS==---

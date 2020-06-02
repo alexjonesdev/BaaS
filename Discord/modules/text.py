@@ -37,3 +37,8 @@ FFFFFF
 FFFFFF
 FFFFFF
 FFFFFF''')
+
+    @commands.command()
+    async def mimic(self, ctx, message):
+        """Says back what you say."""
+        await ctx.send(message)
