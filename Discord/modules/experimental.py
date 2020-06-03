@@ -77,3 +77,14 @@ class experimental(commands.Cog):
         """Returns the next url X number of characters before the current image name. (e.g., !prnt prev <5:optional>)"""
         self.cur_img_name = self.calcString(self.cur_img_name, step * -1)
         await ctx.send(self.rooturl + self.cur_img_name)
+
+    @prnt.command()
+    async def many(self, ctx, amt=2):
+        """Returns the next X urls . (e.g., !prnt many <2:optional>)"""
+        message = 'Returning {0} urls...'.format(abs(amt))
+        
+        for x in range(0,abs(amt)):
+            self.cur_img_name = self.calcString(self.cur_img_name, 1 if amt > 0 else -1)
+            message += '\n' + self.rooturl + self.cur_img_name
+
+        await ctx.send(message)
